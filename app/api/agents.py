@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security.api_key import APIKey
 from pydantic import BaseModel
-from app.lib.auth import get_api_key
+from app.lib.auth.api import get_api_key
 
 
 class Agent(BaseModel):
