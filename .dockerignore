@@ -10,7 +10,7 @@ Dockerfile
 
 # Environments
 
-.env
+# .env
 .venv
 env/
 venv/
