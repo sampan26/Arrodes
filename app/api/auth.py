@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import APIRouter, HTTPException, status    
 from prisma.models import User
 from pydantic import BaseModel
 from app.lib.prisma import prisma
@@ -9,7 +9,7 @@ from app.lib.auth.prisma import (
     validatePassword
 )
 
-router = FastAPI()
+router = APIRouter()
 
 class SignIn(BaseModel):
     email: str
@@ -36,11 +36,13 @@ async def sign_in(signIn: SignIn):
     del user.password
 
     if validated:
-        print(user.id)
         token = signJWT(user.id)
-        print(token)
-        return SignInOut(token=token, user=user)
-    return {"success": False, "error": "Invalid credentials"}
+        return {"success": True, "data": SignInOut(token=token, user=user)}
+    
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Invalid credentials"
+    )
 
 @router.post("/auth/sign-up", tags=["auth"])
 async def sign_up(user: SignUp):
@@ -54,5 +56,9 @@ async def sign_up(user: SignUp):
     )
     await prisma.profile.create({"userId": user.id})
 
-    return {"success": True, "data": user}
- 
+    if user:
+        return {"success": True, "data": user}
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Invalid credentials"
+    )
