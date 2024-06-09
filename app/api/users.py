@@ -10,7 +10,7 @@ async def read_user_me(token=Depends(JWTBearer())):
 
     if "userId" in decoded:
         userId = decoded["userId"]
-        user = await primsa.user.find_first(
+        user = await prisma.user.find_first(
             where={"id":userId}, include={"profile":True}
         )
 
