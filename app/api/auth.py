@@ -1,30 +1,15 @@
-from typing import Optional
+from fastapi import APIRouter, HTTPException, status  
 
-from fastapi import APIRouter, HTTPException, status    
-from pydantic import BaseModel
 from app.lib.auth.prisma import (
     encrpytedPassword,
     signJWT,
     validatePassword
 )
 from app.lib.prisma import prisma
-from prisma.models import User
+from app.lib.models.auth import SignIn, SignInOut, SignUp
 
 
 router = APIRouter()
-
-class SignIn(BaseModel):
-    email: str
-    password: str
-
-class SignUp(BaseModel):
-    email: str
-    password: str
-    name: Optional[str] = None
-
-class SignInOut(BaseModel):
-    token: str
-    user: User
 
 @router.post("/auth/sign-in", tags=["auth"])
 async def sign_in(signIn: SignIn):
