@@ -1,9 +1,9 @@
-import bcrypt
-import jwt
-
-from decouple import config
 from datetime import datetime, timedelta, timezone
 from typing import Dict
+
+import bcrypt
+import jwt
+from decouple import config
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 

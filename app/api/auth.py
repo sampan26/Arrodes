@@ -1,13 +1,15 @@
 from typing import Optional
+
 from fastapi import APIRouter, HTTPException, status    
-from prisma.models import User
 from pydantic import BaseModel
-from app.lib.prisma import prisma
 from app.lib.auth.prisma import (
     encrpytedPassword,
     signJWT,
     validatePassword
 )
+from app.lib.prisma import prisma
+from prisma.models import User
+
 
 router = APIRouter()
 
@@ -31,7 +33,6 @@ async def sign_in(signIn: SignIn):
             "email": signIn.email,
         }
     )
-
     validated = validatePassword(signIn.password)
     del user.password
 
