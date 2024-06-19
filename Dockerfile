@@ -13,14 +13,17 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --no-root && rm -rf $POETRY_CACHE_DIR
 
+
 FROM python:3.11 AS runtime
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PORT="8080"
-
 COPY --from=builder /app/.venv /app/.venv
 
 COPY . ./
+
+RUN prisma generate 
+
 
 # Bind the port and refer to the app.py app
 CMD exec gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker  --threads 8 app.main:app
