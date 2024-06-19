@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status  
 
 from app.lib.auth.prisma import (
-    encrpytedPassword,
+    encryptPassword,
     signJWT,
     validatePassword
 )
@@ -32,11 +32,11 @@ async def sign_in(signIn: SignIn):
 
 @router.post("/auth/sign-up", tags=["auth"])
 async def sign_up(user: SignUp):
-    encrpytedPassword(user.password)
+    encryptPassword(user.password)
     user = await prisma.user.create(
         {
             "email": user.email,
-            "password": encrpytedPassword(user.password),
+            "password": encryptPassword(user.password),
             "name": user.name,
         }
     )
