@@ -11,7 +11,7 @@ from app.lib.models.auth import SignIn, SignInOut, SignUp
 
 router = APIRouter()
 
-@router.post("/auth/sign-in", tags=["auth"])
+@router.post("/auth/sign-in")
 async def sign_in(signIn: SignIn):
     user = await prisma.user.find_first(
         where={
@@ -30,7 +30,7 @@ async def sign_in(signIn: SignIn):
         detail="Invalid credentials"
     )
 
-@router.post("/auth/sign-up", tags=["auth"])
+@router.post("/auth/sign-up")
 async def sign_up(user: SignUp):
     encryptPassword(user.password)
     user = await prisma.user.create(

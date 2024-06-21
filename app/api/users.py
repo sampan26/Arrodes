@@ -5,7 +5,7 @@ from app.lib.prisma import prisma
 
 router = APIRouter()
 
-@router.get("/users/me", tags=["users"])
+@router.get("/users/me")
 async def read_user_me(token=Depends(JWTBearer())):
     decoded = decodeJWT(token)
 
@@ -22,7 +22,7 @@ async def read_user_me(token=Depends(JWTBearer())):
         detail=f"User with id {userId} not found",
     )
 
-@router.get("/user/{userId}",tags=["users"])
+@router.get("/user/{userId}")
 async def read_user(userId: str):
     user = await prisma.user.find_unique(
         where={"id": userId}, include={"profile": True}
