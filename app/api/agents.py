@@ -47,7 +47,7 @@ async def read_agents(token=Depends(JWTBearer())):
         detail="no agent found"
     )
 
-@router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
+@router.get("/agents/{agentId}", name="List all agents", description="List all agents")
 async def read_agent(agentId: str, token=Depends(JWTBearer())):
     agent = await prisma.agent.find_unique(
         where={"id": agentId}, include={"user": True}
