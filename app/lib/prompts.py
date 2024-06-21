@@ -6,7 +6,7 @@ simple questions to providing in-depth explanations and discussions on a wide ra
 topics.
 {history}
 Human: {human_input}
-Answer in Markdown:
+Assistant:
 """
 
 default_chat_prompt = PromptTemplate(

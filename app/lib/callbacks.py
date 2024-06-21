@@ -1,24 +1,25 @@
 from typing import Any, Dict, List, Optional, Union
 
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.schema import AgentAction, AgentFinish, LLMResult
 
-class StreamingCallbackHandler(BaseCallbackHandler):
+class StreamingCallbackHandler(AsyncCallbackHandler):
 
-    def __init__(self, on_new_token, on_end) -> None:
-        self.on_new_token = on_new_token
-        self.on_end = on_end
+    def __init__(self, on_llm_new_token_, on_llm_end_, on_chain_end_) -> None:
+        self.on_llm_new_token_ = on_llm_new_token_
+        self.on_llm_end_ = on_llm_end_
+        self.on_chain_end_ = on_chain_end_
 
     def on_llm_start(
             self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> None:
         pass
 
-    def on_llm_new_token(self, token: str, *args, **kwargs: Any) -> None:
-        self.on_new_token(token)
+    async def on_llm_new_token(self, token: str, *args, **kwargs: Any) -> None:
+        await self.on_llm_new_token_(token)
 
-    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
-        self.on_end()
+    async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+        await self.on_llm_end_()
 
     def on_llm_error(
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
@@ -30,8 +31,9 @@ class StreamingCallbackHandler(BaseCallbackHandler):
     ) -> None:
         pass
 
-    def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
-        pass
+    async def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
+        print(outputs, kwargs)
+        await self.on_chain_end_(outputs)
 
     def on_tool_start(
         self,
