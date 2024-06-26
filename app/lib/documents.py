@@ -6,6 +6,8 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.pinecone import Pinecone
 
+
+# pc = Pinecone(api_key=config("PINECONE_API_KEY"))
 pinecone.init(
     api_key=config("PINECONE_API_KEY"),
     environment=config("PINECONE_ENVIRONMENT")
