@@ -45,13 +45,13 @@ async def create_agents(body: Agent, token = Depends(JWTBearer())):
 async def read_agents(token=Depends(JWTBearer())):
     decoded = decodeJWT(token)
     agents = await prisma.agent.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": decoded["userId"]}, include={"user": True, "document": True}
     )
 
     if agents:
         return {"success": True, "data": agents}
     
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="no agent found"
     )
@@ -65,7 +65,7 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
     if agent:
         return {"success": True, "data": agent}
     
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"Agent with id {agentId} not found"
     )
@@ -79,7 +79,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e
         )
@@ -88,7 +88,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(get_api_key)):
     """Agnet detail endpoint"""
     input = body.input
-
+    input["chat_history"] = []
     has_streaming = body.has_streaming
     agent = await prisma.agent.find_unique(
         where={"id": agentId}, include={"user": True, "document": True}
@@ -157,7 +157,7 @@ async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(ge
 
             return {"success": True, "data": output}
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Agent with id: {agentId} not found",
     )

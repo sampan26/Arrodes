@@ -29,7 +29,7 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
         return {"success": True, "data": agent}
 
     except Exception as e:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
@@ -46,7 +46,7 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     if api_tokens:
         return {"success": True, "data": api_tokens}
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="No agents found",
     )
@@ -57,7 +57,7 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     name="Get API token",
     description="Get a specific API token",
 )
-async def read_agent(tokenId: str, token=Depends(JWTBearer())):
+async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
     api_token = await prisma.apitoken.find_unique(
         where={"id": tokenId}, include={"user": True}
@@ -66,7 +66,7 @@ async def read_agent(tokenId: str, token=Depends(JWTBearer())):
     if api_token:
         return {"success": True, "data": api_token}
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
         detail=f"API token with id: {tokenId} not found",
     )
@@ -84,7 +84,7 @@ async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
             detail=e,
         )

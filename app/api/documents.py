@@ -26,6 +26,24 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             detail=e
         )
     
+@router.get("/documents/", name="List documents", description="List all documents")
+async def read_documents(token=Depends(JWTBearer())):
+    """List documents endpoint"""
+    decoded = decodeJWT(token)
+    documents = await prisma.document.find_many(
+        where={"userId": decoded["userId"]}, include={"user": True}
+    )
+
+    if documents:
+        return {"success": True, "data": documents}
+
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="No agents found",
+    )
+
+
+    
 @router.get("/documents/{documentId}", name="Get Document", description="Get a doc")
 async def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
@@ -42,18 +60,18 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
     )
 
 @router.delete(
-    "/agents/{documentId}",
+    "/documents/{documentId}",
     name="Delete document",
     description="Delete a specific document",
 )
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
-        await prisma.agent.delete(where={"id": documentId})
+        await prisma.document.delete(where={"id": documentId})
 
         return {"success": True, "data": None}
     except Exception as e:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
