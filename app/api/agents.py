@@ -27,7 +27,8 @@ async def create_agents(body: Agent, token = Depends(JWTBearer())):
             {
                 "name": body.name,
                 "type": body.type,
-                'llm': json.dumps(body.llm),
+                "llm": json.dumps(body.llm),
+                "hasMemory": body.has_memory,
                 "userId": decoded["userId"]
             },
             include={"user": True},
@@ -90,11 +91,15 @@ async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(ge
 
     has_streaming = body.has_streaming
     agent = await prisma.agent.find_unique(
-        where={"id": agentId}, include={"user": True}
+        where={"id": agentId}, include={"user": True, "document": True}
     )
 
     await prisma.agentmemory.create(
-        {"auther": "HUMAN", "message": input["human_input"], "agentId": agentId}
+        {
+            "auther": "HUMAN", 
+            "message": input.get("human_input", input.get("question", "")), 
+            "agentId": agentId,
+        }
     )
 
     if agent:
