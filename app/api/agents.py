@@ -1,6 +1,5 @@
 import asyncio
 import json
-
 from queue import Queue
 from typing import Any, Dict
 
@@ -17,8 +16,8 @@ from app.lib.prisma import prisma
 router = APIRouter()
 
 
-@router.post("/agents/", name="Create agent", description="Create a new agent")
-async def create_agents(body: Agent, token = Depends(JWTBearer())):
+@router.post("/agents", name="Create agent", description="Create a new agent")
+async def create_agent(body: Agent, token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
 
@@ -29,51 +28,63 @@ async def create_agents(body: Agent, token = Depends(JWTBearer())):
                 "type": body.type,
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.has_memory,
-                "userId": decoded["userId"]
+                "userId": decoded["userId"],
             },
             include={"user": True},
         )
+
         return {"success": True, "data": agent}
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e
+            detail=e,
         )
-    
-@router.get("/agents", name="Create agent", description="Create a new agent")
+
+
+@router.get("/agents", name="List all agents", description="List all agents")
 async def read_agents(token=Depends(JWTBearer())):
+    """Agents endpoint"""
     decoded = decodeJWT(token)
     agents = await prisma.agent.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True, "document": True}
+        where={"userId": decoded["userId"]},
+        include={
+            "user": True,
+            "document": True,
+        },
+        order={"createdAt": "desc"},
     )
 
     if agents:
         return {"success": True, "data": agents}
-    
+
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="no agent found"
+        detail="No agents found",
     )
 
-@router.get("/agents/{agentId}", name="List all agents", description="List all agents")
+
+@router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
 async def read_agent(agentId: str, token=Depends(JWTBearer())):
+    """Agent detail endpoint"""
     agent = await prisma.agent.find_unique(
         where={"id": agentId}, include={"user": True}
     )
 
     if agent:
         return {"success": True, "data": agent}
-    
+
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=f"Agent with id {agentId} not found"
+        detail=f"Agent with id: {agentId} not found",
     )
+
 
 @router.delete(
     "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
 )
 async def delete_agent(agentId: str, token=Depends(JWTBearer())):
+    """Delete agent endpoint"""
     try:
         await prisma.agent.delete(where={"id": agentId})
 
@@ -81,12 +92,35 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e
+            detail=e,
         )
-    
-@router.post("/agents/{agentId}/predict", name="Prompt agent", description="Invoke specific agent")
-async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(get_api_key)):
-    """Agnet detail endpoint"""
+
+
+@router.patch(
+    "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
+)
+async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
+    """Patch agent endpoint"""
+    try:
+        await prisma.agent.update(data=body, where={"id": agentId})
+
+        return {"success": True, "data": None}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=e,
+        )
+
+
+@router.post(
+    "/agents/{agentId}/predict",
+    name="Prompt agent",
+    description="Invoke a specific agent",
+)
+async def run_agent(
+    agentId: str, body: PredictAgent, api_key: APIKey = Depends(get_api_key)
+):
+    """Agent detail endpoint"""
     input = body.input
     input["chat_history"] = []
     has_streaming = body.has_streaming
@@ -96,8 +130,8 @@ async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(ge
 
     await prisma.agentmemory.create(
         {
-            "auther": "HUMAN", 
-            "message": input.get("human_input", input.get("question", "")), 
+            "author": "HUMAN",
+            "message": input.get("human_input", input.get("question", "")),
             "agentId": agentId,
         }
     )
@@ -107,10 +141,10 @@ async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(ge
 
             async def on_llm_new_token(token) -> None:
                 await data_queue.put(token)
-            
+
             async def on_llm_end() -> None:
                 await data_queue.put("[END]")
-            
+
             async def on_chain_end(outputs: Dict[str, Any]) -> None:
                 pass
 
@@ -123,10 +157,10 @@ async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(ge
                         await prisma.agentmemory.create(
                             {"author": "AI", "message": ai_message, "agentId": agentId}
                         )
-                        yield f"data:{data} \n\n"
-                        break 
-                    yield f"data:{data} \n\n"
-            
+                        yield f"data: {data}\n\n"
+                        break
+                    yield f"data: {data}\n\n"
+
             async def conversation_run_thread(input: dict) -> None:
                 agent_definition = AgentDefinition(
                     agent=agent,
@@ -136,24 +170,23 @@ async def run_agent(agentId: str, body: PredictAgent, api_key: APIKey=Depends(ge
                     on_chain_end=on_chain_end,
                 )
                 agent_executor = await agent_definition.get_agent()
-                await agent_executor.run(input)
+                await agent_executor.arun(input)
 
             data_queue = asyncio.Queue()
             asyncio.create_task(conversation_run_thread(input))
-            response = StreamingResponse(event_stream(data_queue), media_type="text/event-stream")
-            return response
-        
-        else:
-            agent_definition = AgentDefinition(
-                agent=agent,
-                has_streaming=has_streaming,
+            response = StreamingResponse(
+                event_stream(data_queue), media_type="text/event-stream"
             )
+
+            return response
+
+        else:
+            agent_definition = AgentDefinition(agent=agent, has_streaming=has_streaming)
             agent_executor = await agent_definition.get_agent()
             output = await agent_executor.arun(input)
             await prisma.agentmemory.create(
                 {"author": "AI", "message": output, "agentId": agentId}
             )
-
 
             return {"success": True, "data": output}
 

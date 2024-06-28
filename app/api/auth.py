@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, HTTPException, status  
 
 from app.lib.auth.prisma import (
@@ -16,7 +18,8 @@ async def sign_in(signIn: SignIn):
     user = await prisma.user.find_first(
         where={
             "email": signIn.email,
-        }
+        },
+        include={"profile": True}
     )
     validated = validatePassword(signIn.password)
     del user.password
@@ -31,19 +34,21 @@ async def sign_in(signIn: SignIn):
     )
 
 @router.post("/auth/sign-up")
-async def sign_up(user: SignUp):
-    encryptPassword(user.password)
-    user = await prisma.user.create(
+async def sign_up(body: SignUp):
+    encryptPassword(body.password)
+    body = await prisma.user.create(
         {
-            "email": user.email,
-            "password": encryptPassword(user.password),
-            "name": user.name,
+            "email": body.email,
+            "password": encryptPassword(body.password),
+            "name": body.name,
         }
     )
-    await prisma.profile.create({"userId": user.id})
+    await prisma.profile.create(
+        {"userId": body.id, "metadata": json.dump(body.metadata)}
+    )
 
-    if user:
-        return {"success": True, "data": user}
+    if body:
+        return {"success": True, "data": body}
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Invalid credentials"

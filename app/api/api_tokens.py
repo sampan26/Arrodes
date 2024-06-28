@@ -8,9 +8,7 @@ from app.lib.prisma import prisma
 router = APIRouter()
 
 
-@router.post(
-    "/api-tokens/", name="Create API token", description="Create a new API token"
-)
+@router.post("/api-tokens", name="Create API token", description="Create a new API token")
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
     decoded = decodeJWT(token)
@@ -35,7 +33,7 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/api-tokens/", name="List API tokens", description="List all API tokens")
+@router.get("/api-tokens", name="List API tokens", description="List all API tokens")
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     decoded = decodeJWT(token)
@@ -52,11 +50,7 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     )
 
 
-@router.get(
-    "/api-tokens/{tokenId}",
-    name="Get API token",
-    description="Get a specific API token",
-)
+@router.get("/api-tokens/{tokenId}",name="Get API token",description="Get a specific API token",)
 async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
     api_token = await prisma.apitoken.find_unique(
@@ -67,16 +61,12 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
         return {"success": True, "data": api_token}
 
     raise HTTPException(
-        status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"API token with id: {tokenId} not found",
     )
 
 
-@router.delete(
-    "/api-tokens/{tokenId}",
-    name="Delete API token",
-    description="Delete a specific API token",
-)
+@router.delete("/api-tokens/{tokenId}",name="Delete API token",description="Delete a specific API token")
 async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Deleta api token endpoint"""
     try:
@@ -85,6 +75,6 @@ async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
         return {"success": True, "data": None}
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
