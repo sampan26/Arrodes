@@ -7,17 +7,27 @@ from app.lib.prisma import prisma
 
 router = APIRouter()
 
-@router.post("/documents/", name="Create Doc", description="Create new doc")
+@router.post("/documents", name="Create Doc", description="Create new doc")
 async def create_document(body: Document, token=Depends(JWTBearer())):
     try:
         decoded = decodeJWT(token)
         document_type = body.type
         document_url = body.url
+        document_name = body.name
         document = await prisma.document.create(
-            {"type": document_type, "url": document_url, "userID": decoded["userID"]}
+            {
+                "type": document_type,
+                "url": document_url,
+                "userId": decoded["userID"],
+                "name": document_name
+            }
         )
 
-        await upsert_document(url=document_url, type=document_type, document_id=document.id)
+        await upsert_document(
+            url=document_url,
+            type=document_type,
+            document_id=document.id
+        )
 
         return {"success": True, "data": document}
     except Exception as e:
@@ -26,7 +36,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             detail=e
         )
     
-@router.get("/documents/", name="List documents", description="List all documents")
+@router.get("/documents", name="List documents", description="List all documents")
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     decoded = decodeJWT(token)

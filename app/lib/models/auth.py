@@ -11,6 +11,7 @@ class SignUp(BaseModel):
     email: str
     password: str
     name: Optional[str] = None
+    metadata: dict = None
 
 class SignInOut(BaseModel):
     token: str
