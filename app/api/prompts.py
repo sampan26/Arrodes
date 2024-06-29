@@ -27,20 +27,20 @@ async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
 @router.get("/prompts", name="List prompts", description="List all prompts")
 async def read_prompts(token=Depends(JWTBearer())):
     decoded = decodeJWT(token)
-    prompts = prisma.prompts.find_many(
+    prompt = prisma.prompt.find_many(
         where={"userId": decoded["userId"]}, include={"user": True}
     )
 
-    return {"success": True, "data": prompts}
+    return {"success": True, "data": prompt}
 
 @router.get("/prompts/{promptId}", name="Get prompt", description="Get a specific prompt")
 async def read_prompt(promptId: str, token=Depends(JWTBearer())):
-    prompt = prisma.prompts.find_unique(where={"id": promptId}, include={"user": True})
+    prompt = prisma.prompt.find_unique(where={"id": promptId}, include={"user": True})
     return {"success": True, "data": prompt}
 
 @router.delete("/prompt/{promptId}", name="Delete prompt", description="Delete a specifi prompt")
 async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
-    prisma.prompts.delete(where={"id": promptId})
+    prisma.prompt.delete(where={"id": promptId})
     return {"success": True, "data": None}
 
  
