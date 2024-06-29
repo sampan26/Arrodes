@@ -52,6 +52,7 @@ async def read_agents(token=Depends(JWTBearer())):
         include={
             "user": True,
             "document": True,
+            "prompt": True,
         },
         order={"createdAt": "desc"},
     )
@@ -116,7 +117,7 @@ async def run_agent(
     input["chat_history"] = []
     has_streaming = body.has_streaming
     agent = prisma.agent.find_unique(
-        where={"id": agentId}, include={"user": True, "document": True}
+        where={"id": agentId}, include={"user": True, "document": True, "prompt": True}
     )
 
     prisma.agentmemory.create(
