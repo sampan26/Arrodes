@@ -11,9 +11,7 @@ async def read_user_me(token=Depends(JWTBearer())):
 
     if "userId" in decoded:
         userId = decoded["userId"]
-        user = await prisma.user.find_first(
-            where={"id":userId}, include={"profile":True}
-        )
+        user = prisma.user.find_first(where={"id":userId}, include={"profile":True})
 
         return {"success": True, "data": user}
     
@@ -24,9 +22,7 @@ async def read_user_me(token=Depends(JWTBearer())):
 
 @router.get("/user/{userId}")
 async def read_user(userId: str):
-    user = await prisma.user.find_unique(
-        where={"id": userId}, include={"profile": True}
-    )
+    user = prisma.user.find_unique(where={"id": userId}, include={"profile": True})
 
     if user:
         return {"success": True, "data": user}

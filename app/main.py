@@ -22,10 +22,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    await prisma.connect()
+    prisma.connect()
 
 @app.on_event("shutdown")
 async def shutdown():
-    await prisma.disconnect()
+    prisma.disconnect()
 
 app.include_router(router)

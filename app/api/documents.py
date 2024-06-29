@@ -14,7 +14,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         document_type = body.type
         document_url = body.url
         document_name = body.name
-        document = await prisma.document.create(
+        document = prisma.document.create(
             {
                 "type": document_type,
                 "url": document_url,
@@ -23,7 +23,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             }
         )
 
-        await upsert_document(
+        upsert_document(
             url=document_url,
             type=document_type,
             document_id=document.id
@@ -40,7 +40,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     decoded = decodeJWT(token)
-    documents = await prisma.document.find_many(
+    documents = prisma.document.find_many(
         where={"userId": decoded["userId"]}, include={"user": True}
     )
 
@@ -57,7 +57,7 @@ async def read_documents(token=Depends(JWTBearer())):
 @router.get("/documents/{documentId}", name="Get Document", description="Get a doc")
 async def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
-    document = await prisma.document.find_unique(
+    document = prisma.document.find_unique(
         where={"id": documentId}, include={"user": True}
     )
 
@@ -69,15 +69,11 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
         detail=f"Agent with id: {documentId} not found",
     )
 
-@router.delete(
-    "/documents/{documentId}",
-    name="Delete document",
-    description="Delete a specific document",
-)
+@router.delete("/documents/{documentId}",name="Delete document",description="Delete a specific document",)
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
-        await prisma.document.delete(where={"id": documentId})
+        prisma.document.delete(where={"id": documentId})
 
         return {"success": True, "data": None}
     except Exception as e:

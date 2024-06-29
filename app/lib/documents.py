@@ -13,7 +13,7 @@ pinecone.init(
     environment=config("PINECONE_ENVIRONMENT")
 )
 
-async def upsert_document(url: str, type: str, document_id: str) -> None:
+def upsert_document(url: str, type: str, document_id: str) -> None:
     pinecone.Index("arrodes")
 
     embeddings = OpenAIEmbeddings()
