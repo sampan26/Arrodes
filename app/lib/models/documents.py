@@ -4,3 +4,4 @@ class Document(BaseModel):
     type: str
     url: str
     name: str
+    authorization: dict = None
