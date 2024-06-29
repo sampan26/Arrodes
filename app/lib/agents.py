@@ -4,7 +4,7 @@ from decouple import config
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
-    QA_PROMPT
+    QA_PROMPT,
 )
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatAnthropic, ChatOpenAI
@@ -17,14 +17,15 @@ from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
 from app.lib.prompts import default_chat_prompt
 
+
 class Agent:
     def __init__(
-            self,
-            agent: dict,
-            has_streaming: bool = False,
-            on_llm_new_token=None,
-            on_llm_end=None,
-            on_chain_end=None,
+        self,
+        agent: dict,
+        has_streaming: bool = False,
+        on_llm_new_token=None,
+        on_llm_end=None,
+        on_chain_end=None,
     ):
         self.id = agent.id
         self.document = agent.document
@@ -35,7 +36,7 @@ class Agent:
         self.has_streaming = has_streaming
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
-        self.on_chain_end= on_chain_end
+        self.on_chain_end = on_chain_end
 
     def _get_api_key(self) -> str:
         if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
@@ -44,13 +45,14 @@ class Agent:
                 if "api_key" in self.llm
                 else config("OPENAI_API_KEY")
             )
+
         if self.llm["provider"] == "anthropic":
             return (
                 self.llm["api_key"]
                 if "api_key" in self.llm
                 else config("ANTHROPIC_API_KEY")
             )
-        
+
         if self.llm["provider"] == "cohere":
             return (
                 self.llm["api_key"]
@@ -62,39 +64,62 @@ class Agent:
         if self.llm["provider"] == "openai-chat":
             return (
                 ChatOpenAI(
-                    openai_api_key= self._get_api_key(),
+                    openai_api_key=self._get_api_key(),
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
                         StreamingCallbackHandler(
-                            on_new_token=self.on_llm_new_token, 
-                            on_end = self.on_llm_end,
-                            on_chain_end = self.on_chain_end,
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
                 if self.has_streaming
                 else ChatOpenAI(model_name=self.llm["model"])
             )
-        
-        
+
         if self.llm["provider"] == "openai":
             return OpenAI(
-                model_name=self.llm["model"], openai_api_key= self._get_api_key()
+                model_name=self.llm["model"], openai_api_key=self._get_api_key()
             )
 
-        
         if self.llm["provider"] == "anthropic":
             return (
                 ChatAnthropic(
                     streaming=self.has_streaming,
-                    anthropic_api_key= self._get_api_key(),
+                    anthropic_api_key=self._get_api_key(),
+                    callbacks=[
+                        StreamingCallbackHandler(
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
+                        )
+                    ],
                 )
                 if self.has_streaming
-                else ChatAnthropic(anthropic_api_key= self._get_api_key())
+                else ChatAnthropic(anthropic_api_key=self._get_api_key())
+            )
+
+        if self.llm["provider"] == "cohere":
+            return (
+                Cohere(
+                    cohere_api_key=self._get_api_key(),
+                    model=self.llm["model"],
+                    callbacks=[
+                        StreamingCallbackHandler(
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
+                        )
+                    ],
                 )
-        
-        return ChatOpenAI(temperature=0, openai_api_key= self._get_api_key())
+                if self.has_streaming
+                else Cohere(cohere_api_key=self._get_api_key(), model=self.llm["model"])
+            )
+
+        # Use ChatOpenAI as default llm in agents
+        return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
     def _get_memory(self) -> Any:
         if self.has_memory:
@@ -110,21 +135,23 @@ class Agent:
                 else history.add_user_message(memory.message)
                 for memory in memories
             ]
-            memory = ConversationBufferMemory(chat_memory=history, memory_key="chat_history")
+            memory = ConversationBufferMemory(
+                chat_memory=history, memory_key="chat_history"
+            )
 
             return memory
 
         return None
-    
+
     def _get_document(self) -> Any:
         if self.document:
             embeddings = OpenAIEmbeddings()
             docsearch = Pinecone.from_existing_index(
-                "arrodes", embeddings=embeddings, namespace=self.document.id
+                "arrodes", embedding=embeddings, namespace=self.document.id
             )
 
             return docsearch
-        
+
         return None
 
     def get_agent(self) -> Any:
@@ -138,13 +165,14 @@ class Agent:
             doc_chain = load_qa_chain(
                 llm, chain_type="stuff", prompt=QA_PROMPT, verbose=True
             )
-            agent = ConversationalRetrievalChain.from_llm(
+            agent = ConversationalRetrievalChain(
                 retriever=document.as_retriever(),
                 combine_docs_chain=doc_chain,
                 question_generator=question_generator,
                 memory=memory,
                 get_chat_history=lambda h: h,
             )
+
         else:
             agent = LLMChain(llm=llm, memory=memory, verbose=True, prompt=self.prompt)
 
