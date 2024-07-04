@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from decouple import config
-
+from langchain import HuggingFaceHub
 from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
@@ -71,6 +71,13 @@ class AgentBase:
                 else config("AZURE_API_KEY")
             )
         
+        if self.llm["provider"] == "huggingface":
+            return (
+                self.llm["api_key"]
+                if "api_key" in self.llm
+                else config("HUGGINGFACEHUB_API_TOKEN")
+            )
+
     def _get_tool(self) -> Any:
         try:
             if self.tool.type == "SEARCH":
@@ -193,6 +200,11 @@ class AgentBase:
                     openai_api_type=config("AZURE_API_TYPE"),
                     openai_api_version=config("AZURE_API_VERSION"),
                 )   
+            )
+        
+        if self.llm["provider"] == "huggingface":
+            return HuggingFaceHub(
+                repo_id=self.llm["model"], huggingfacehub_api_token=self._get_api_key()
             )
 
         # Use ChatOpenAI as default llm in agents

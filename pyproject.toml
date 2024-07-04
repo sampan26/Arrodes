@@ -29,6 +29,7 @@ pinecone-client = "^2.2.1"
 tiktoken = "^0.4.0"
 pypdf = "^3.8.1"
 wolframalpha = "^5.0.0"
+huggingface-hub = "^0.15.1"
 
 
 [build-system]
