@@ -2,14 +2,14 @@ import json
 import threading
 from queue import Queue
 from typing import Any, Dict
+
+from decouple import config
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
 
 from app.lib.agents.base import AgentBase
 from app.lib.agents.factory import AgentFactory
-
-from app.lib.agents import Agent as AgentDefinition
 from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agent import Agent, PredictAgent
@@ -170,7 +170,11 @@ async def run_agent(
                 )
                 agent_strategy = AgentFactory.create_agent(agent_base)
                 agent_executor = agent_strategy.get_agent()
-                agent_executor.run(input)
+                result = agent_executor(input)
+
+                if config("ARRODES_TRACING"):
+                    agent_base.save_intermediate_steps(trace=result)
+
 
             data_queue = Queue()
             threading.Thread(target=conversation_run_thread,args=(input,)).start()
@@ -184,12 +188,16 @@ async def run_agent(
             agent_base = AgentBase(agent=agent, has_streaming=has_streaming)
             agent_strategy = AgentFactory.create_agent(agent_base)
             agent_executor = agent_strategy.get_agent()
-            output = agent_executor.run(input)
+            result = agent_executor(input)
+
+            if config("ARRODES_TRACING"):
+                    agent_base.save_intermediate_steps(trace=result)
+                    
             prisma.agentmemory.create(
-                {"author": "AI", "message": output, "agentId": agentId}
+                {"author": "AI", "message": result["output"], "agentId": agentId}
             )
 
-            return {"success": True, "data": output}
+            return {"success": True, "data": result["output"]}
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
