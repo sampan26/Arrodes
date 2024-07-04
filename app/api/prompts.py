@@ -43,4 +43,7 @@ async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
     prisma.prompt.delete(where={"id": promptId})
     return {"success": True, "data": None}
 
- 
+@router.patch("/prompts/{promptId}", name="Patch a prompt", description="Patch a specific prompt")
+async def patch_prompt(promptId: str, body: dict, token=Depends(JWTBearer())):
+    prompt = prisma.prompt.update(data=body, where={"id": promptId})
+    return {"success": True, "data": prompt}
