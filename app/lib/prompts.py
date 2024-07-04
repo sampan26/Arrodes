@@ -46,7 +46,7 @@ Human: {human_input}
 Assitant:
 """
 
-agent_template = """Answer the following questions as best you can You have access to the following tools:
+agent_template = """Answer the following questions as best you can. You have access to the following tools:
 {tools}
 Use the following format:
 Question: the input question you must answer
