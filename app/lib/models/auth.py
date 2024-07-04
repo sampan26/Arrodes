@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel
 
 from prisma.models import User
@@ -10,7 +9,7 @@ class SignIn(BaseModel):
 class SignUp(BaseModel):
     email: str
     password: str
-    name: Optional[str] = None
+    name: str = None
     metadata: dict = None
 
 class SignInOut(BaseModel):

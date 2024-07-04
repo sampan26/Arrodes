@@ -1,11 +1,10 @@
 import pinecone
 import requests
 from decouple import config
-from langchain.document_loaders import PyPDFLoader, TextLoader
+from langchain.document_loaders import PyPDFLoader, TextLoader, WebBaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.pinecone import Pinecone
-from langchain.document_loaders import WebBaseLoader
 
 # pc = Pinecone(api_key=config("PINECONE_API_KEY"))
 pinecone.init(
