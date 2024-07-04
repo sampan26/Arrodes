@@ -26,12 +26,13 @@ enum DocumentType {
   TXT
   PDF
   YOUTUBE
-  OPENAi
+  OPENAI
 }
 
 enum ToolType {
   BROWSER
   SEARCH
+  WOLFRAM_ALPHA
 }
 
 
