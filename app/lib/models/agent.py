@@ -7,6 +7,7 @@ class Agent(BaseModel):
     has_memory: bool = False
     documentId: str = None
     promptId: str = None
+    toolId: str = None
 
 class PredictAgent(BaseModel):
     input: dict
