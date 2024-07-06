@@ -12,9 +12,9 @@ def get_search_tool() -> List:
     )
     tools = [
         Tool(
-            name="Bing search",
+            name="Search",
             func=search.run,
-            description="useful for when you need to ask with search",
+            description="useful for when you need to answer questions about current events. You should ask targeted questions.",
         )
     ]
 

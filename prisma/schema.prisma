@@ -15,6 +15,7 @@ datasource db {
 enum AgentType {
   REACT
   PLANSOLVE
+  OPENAI
 }
 
 enum AgentMemoryAuthorType {
