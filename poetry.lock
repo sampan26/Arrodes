@@ -1965,13 +1965,13 @@ files = [
 
 [[package]]
 name = "pdfminer-six"
-version = "20231228"
+version = "20221105"
 description = "PDF parser and analyzer"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "pdfminer.six-20231228-py3-none-any.whl", hash = "sha256:e8d3c3310e6fbc1fe414090123ab01351634b4ecb021232206c4c9a8ca3e3b8f"},
-    {file = "pdfminer.six-20231228.tar.gz", hash = "sha256:6004da3ad1a7a4d45930cb950393df89b068e73be365a6ff64a838d37bcb08c4"},
+    {file = "pdfminer.six-20221105-py3-none-any.whl", hash = "sha256:1eaddd712d5b2732f8ac8486824533514f8ba12a0787b3d5fe1e686cd826532d"},
+    {file = "pdfminer.six-20221105.tar.gz", hash = "sha256:8448ab7b939d18b64820478ecac5394f482d7a79f5f7eaa7703c6c959c175e1d"},
 ]
 
 [package.dependencies]
@@ -1982,6 +1982,22 @@ cryptography = ">=36.0.0"
 dev = ["black", "mypy (==0.931)", "nox", "pytest"]
 docs = ["sphinx", "sphinx-argparse"]
 image = ["Pillow"]
+
+[[package]]
+name = "pdfplumber"
+version = "0.9.0"
+description = "Plumb a PDF for detailed information about each char, rectangle, and line."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pdfplumber-0.9.0-py3-none-any.whl", hash = "sha256:b396f2919670eb863124f649a907dc846c8653bbb6ba8024fe274952de121077"},
+    {file = "pdfplumber-0.9.0.tar.gz", hash = "sha256:a43a213e125ed72b2358c0d3428f9b72f83939109ec33b77ef9325eeab9846f0"},
+]
+
+[package.dependencies]
+"pdfminer.six" = "20221105"
+Pillow = ">=9.1"
+Wand = ">=0.6.10"
 
 [[package]]
 name = "pillow"
@@ -2738,13 +2754,13 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyam
 
 [[package]]
 name = "tenacity"
-version = "8.4.2"
+version = "8.5.0"
 description = "Retry code until it succeeds"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "tenacity-8.4.2-py3-none-any.whl", hash = "sha256:9e6f7cf7da729125c7437222f8a522279751cdfbe6b67bfe64f75d3a348661b2"},
-    {file = "tenacity-8.4.2.tar.gz", hash = "sha256:cd80a53a79336edba8489e767f729e4f391c896956b57140b5d7511a64bbd3ef"},
+    {file = "tenacity-8.5.0-py3-none-any.whl", hash = "sha256:b594c2a5945830c267ce6b79a166228323ed52718f30302c1359836112346687"},
+    {file = "tenacity-8.5.0.tar.gz", hash = "sha256:8bc6c0c8a09b31e6cad13c47afbed1a567518250a9a171418582ed8d9c20ca78"},
 ]
 
 [package.extras]
@@ -3098,6 +3114,21 @@ files = [
 [package.extras]
 docs = ["Sphinx (>=4.1.2,<4.2.0)", "sphinx-rtd-theme (>=0.5.2,<0.6.0)", "sphinxcontrib-asyncio (>=0.3.0,<0.4.0)"]
 test = ["Cython (>=0.29.36,<0.30.0)", "aiohttp (==3.9.0b0)", "aiohttp (>=3.8.1)", "flake8 (>=5.0,<6.0)", "mypy (>=0.800)", "psutil", "pyOpenSSL (>=23.0.0,<23.1.0)", "pycodestyle (>=2.9.0,<2.10.0)"]
+
+[[package]]
+name = "wand"
+version = "0.6.13"
+description = "Ctypes-based simple MagickWand API binding for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "Wand-0.6.13-py2.py3-none-any.whl", hash = "sha256:e5dda0ac2204a40c29ef5c4cb310770c95d3d05c37b1379e69c94ea79d7d19c0"},
+    {file = "Wand-0.6.13.tar.gz", hash = "sha256:f5013484eaf7a20eb22d1821aaefe60b50cc329722372b5f8565d46d4aaafcca"},
+]
+
+[package.extras]
+doc = ["Sphinx (>=5.3.0)"]
+test = ["pytest (>=7.2.0)"]
 
 [[package]]
 name = "watchfiles"
@@ -3462,4 +3493,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d5d89dee94ed6e24d59f3f0fdbad688ca57cb905bacfdec73a1e600af7327308"
+content-hash = "1580ba4c9144ce64521bb571d5797b609b0518cfb331e08ad58eaf43bab94882"

@@ -31,7 +31,7 @@ pypdf = "^3.8.1"
 wolframalpha = "^5.0.0"
 huggingface-hub = "^0.15.1"
 bs4 = "^0.0.1"
-
+pdfplumber = "^0.9.0"
 
 [build-system]
 requires = ["poetry-core"]
