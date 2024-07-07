@@ -70,6 +70,7 @@ model Document {
   type          DocumentType @default(TXT)
   url           String       @db.Text()
   name          String
+  splitter      Json?
   createdAt     DateTime?    @default(now())
   updatedAt     DateTime?    @default(now())
   index         Json?
@@ -108,7 +109,7 @@ model ApiToken {
 model AgentMemory {
   id        String                @id @default(cuid()) @db.VarChar(255)
   agentId   String                @db.VarChar(255)
-  agent     Agent                 @relation(fields: [agentId], references: [id])
+  agent     Agent                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
   author    AgentMemoryAuthorType @default(HUMAN)
   message   String                @db.Text()
   createdAt DateTime?             @default(now())
@@ -122,7 +123,7 @@ model AgentTrace {
   user      User      @relation(fields: [userId], references: [id])
   agentId   String    @db.VarChar(255)
   data      Json
-  agent     Agent     @relation(fields: [agentId], references: [id])
+  agent     Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
   createdAt DateTime? @default(now())
   updatedAt DateTime? @default(now())
 }
