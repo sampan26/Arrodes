@@ -1,23 +1,26 @@
 import pinecone
 import requests
-from decouple import config
-from langchain.document_loaders import TextLoader, WebBaseLoader
+from langchain.document_loaders import TextLoader, WebBaseLoader, YoutubeLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores.pinecone import Pinecone
 
 from app.lib.parsers import CustomPDFPlumberLoader
-
+from app.lib.splitters import TextSplitters
+from app.lib.vectorstores.base import VectorStoreBase
 # pc = Pinecone(api_key=config("PINECONE_API_KEY"))
-pinecone.init(
-    api_key=config("PINECONE_API_KEY"),
-    environment=config("PINECONE_ENVIRONMENT")
-)
+# pinecone.init(
+#     api_key=config("PINECONE_API_KEY"),
+#     environment=config("PINECONE_ENVIRONMENT")
+# )
 
-valid_ingestion_types = ["TXT", "PDF", "URL"]
+valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE"]
 
 def upsert_document(
-        url: str, type: str, document_id: str, from_page: int, to_page: int
+        url: str, 
+        type: str, 
+        document_id: str, 
+        from_page: int, 
+        to_page: int,
+        text_splitter: dict = None,
         ) -> None:
     pinecone.Index("arrodes")
 
@@ -27,10 +30,12 @@ def upsert_document(
         file_response = requests.get(url)
         loader = TextLoader(file_response.content)
         documents = loader.load()
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        docs = text_splitter.split_documents(documents)
-        
-        Pinecone.from_documents(
+        newDocuments = [
+            documents.metadata.update({"namespace": document_id or document 
+                                       for document in documents})
+        ]
+        text_splitter = TextSplitters(newDocuments, text_splitter).document_splitter()
+        VectorStoreBase().get_database().from_documents(
             docs, embeddings, index_name="arrodes", namespace=document_id
         )
 
@@ -38,19 +43,42 @@ def upsert_document(
         loader = CustomPDFPlumberLoader(
             file_path=url, from_page=from_page, to_page=to_page)
         documents = loader.load()
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        docs = text_splitter.split_documents(documents)
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
         
-        Pinecone.from_documents(
+        VectorStoreBase().get_database().from_documents(
             docs, embeddings, index_name="arrodes", namespace=document_id
         )
 
     if type == "URL":
         loader = WebBaseLoader(url)
         documents = loader.load()
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        docs = text_splitter.split_documents(documents)
+        newDocuments = [
+            document.metadata.update({"namespace": document_id, "langauge": "en"})
+            or document
+            for document in documents
+        ]
 
-        Pinecone.from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="arrodes", namespace=document_id
+        )
+
+    if type == "YOUTUBE":
+        video_id = url.split("youtube.com/watch?v=")[-1]
+        loader = YoutubeLoader(video_id=video_id)
+        documents = loader.load()
+        newDocuments = [
+            document.metadata.update({"namespace":document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="arrodes", namespace=document_id
         )
