@@ -4,6 +4,7 @@ class Tool(BaseModel):
     name: str
     type: str
     authorization: dict = None
+    metadata: dict = None
 
 class SearchToolInput(BaseModel):
     input: str = Field()
@@ -11,3 +12,5 @@ class SearchToolInput(BaseModel):
 class WolframToolInput(BaseModel):
     input: str = Field()
  
+class ReplicateToolInput(BaseModel):
+    prompt: str = Field()

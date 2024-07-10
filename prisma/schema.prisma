@@ -26,12 +26,14 @@ enum DocumentType {
   YOUTUBE
   OPENAPI
   URL
+  MARKDOWN
 }
 
 enum ToolType {
   BROWSER
   SEARCH
   WOLFRAM_ALPHA
+  REPLICATE
 }
 
 model User {
@@ -154,6 +156,7 @@ model Tool {
   id        String      @id @default(cuid()) @db.VarChar(255)
   name      String
   type      ToolType?
+  metadata  Json?
   userId    String      @db.VarChar(255)
   user      User        @relation(fields: [userId], references: [id])
   createdAt DateTime?   @default(now())
