@@ -2,6 +2,7 @@
 import json
 from typing import Any, Tuple
 
+from slugify import slugify
 from decouple import config
 from langchain import HuggingFaceHub
 from langchain.agents import Tool
@@ -20,14 +21,19 @@ from langchain.schema import SystemMessage
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
-from app.lib.models.tool import SearchToolInput, WolframToolInput
+from app.lib.models.tool import ReplicateToolInput, SearchToolInput, WolframToolInput
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
     DEFAULT_CHAT_PROMPT,
     DEFAULT_AGENT_PROMPT,
 )
-from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
+from app.lib.tools import (
+    ToolDescription,
+    get_search_tool,
+    get_wolfram_alpha_tool,
+    get_replicate_tool,
+)
 from app.lib.vectorstores.base import VectorStoreBase
 
 
@@ -91,15 +97,18 @@ class AgentBase:
                 else config("HUGGINGFACEHUB_API_TOKEN")
             )
 
-    def _get_tool(self) -> Any:
+    def _get_tool(self, *args) -> Any:
         try:
             if self.tool.type == "SEARCH":
-                tools = get_search_tool()
+                tool = get_search_tool()
 
             if self.tool.type == "WOLFRAM_ALPHA":
-                tools = get_wolfram_alpha_tool()
+                tool = get_wolfram_alpha_tool()
+            
+            if self.tool.type == "REPLICATE":
+                tool = get_replicate_tool()
 
-            return tools
+            return tool
 
         except Exception:
             return None
@@ -144,7 +153,11 @@ class AgentBase:
                     ],
                 )
                 if self.has_streaming
-                else ChatOpenAI(model_name=self.llm["model"])
+                else ChatOpenAI(
+                    model_name=self.llm["model"],
+                    openai_api_key=self._get_api_key(),
+                    temperature=0,
+                    )
             )
 
         if self.llm["provider"] == "openai":
@@ -261,11 +274,15 @@ class AgentBase:
 
         return agent_documents
 
-    def _get_tool_and_input_by_type(self, type: str) -> Tuple[Any, Any]:
+    def _get_tool_and_input_by_type(
+            self, type: str, metadata: dict = None
+            ) -> Tuple[Any, Any]:
         if type == "SEARCH":
             return get_search_tool(), SearchToolInput
         if type == "WOLFRAM_ALPHA":
             return get_wolfram_alpha_tool(), WolframToolInput
+        if type == "REPLICATE":
+            return get_replicate_tool(metadata=metadata), ReplicateToolInput
 
     def _get_tools(self) -> list:
         tools = []
@@ -282,7 +299,7 @@ class AgentBase:
             ).as_retriever()
             tools.append(
                 Tool(
-                    name=agent_document.document.id
+                    name=slugify(agent_document.document.name)
                     if self.type == "OPENAI"
                     else agent_document.document.name,
                     description=description,
@@ -295,13 +312,15 @@ class AgentBase:
             )
 
         for agent_tool in self.tools:
-            tool, args_schema = self._get_tool_and_input_by_type(agent_tool.tool.type)
+            tool, args_schema = self._get_tool_and_input_by_type(
+                agent_tool.tool.type, metadata=agent_tool.tool.metadata
+                )
             tools.append(
                 Tool(
-                    name=agent_tool.tool.id,
+                    name=slugify(agent_tool.tool.name),
                     description=ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema if self.type == "OPENAI" else None,
-                    func=tool.run,
+                    func=tool.run if agent_tool.tool.type != "REPLICATE" else tool,
                 )
             )
 
