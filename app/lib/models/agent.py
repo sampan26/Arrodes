@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 
+
 class Agent(BaseModel):
     name: str
     type: str
     llm: dict = None
-    has_memory: bool = False
-    documentId: str = None
+    hasMemory: bool = False
     promptId: str = None
-    toolId: str = None
+
 
 class PredictAgent(BaseModel):
     input: dict
