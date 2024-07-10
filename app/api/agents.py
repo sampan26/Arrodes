@@ -4,7 +4,7 @@ from queue import Queue
 from typing import Any, Dict
 
 from decouple import config
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
 
@@ -29,11 +29,9 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "name": body.name,
                 "type": body.type,
                 "llm": json.dumps(body.llm),
-                "hasMemory": body.has_memory,
+                "hasMemory": body.hasMemory,
                 "userId": decoded["userId"],
-                "documentId": body.documentId,
                 "promptId": body.promptId,
-                "toolId": body.toolId,
             },
             include={"user": True},
         )
@@ -71,7 +69,7 @@ async def read_agents(token=Depends(JWTBearer())):
 @router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
 async def read_agent(agentId: str, token=Depends(JWTBearer())):
     """Agent detail endpoint"""
-    agent = prisma.agent.find_unique(where={"id": agentId}, include={"user": True})
+    agent = prisma.agent.find_unique(where={"id": agentId}, include={"prompt": True})
 
     if agent:
         return {"success": True, "data": agent}
