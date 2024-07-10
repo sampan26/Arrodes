@@ -1,0 +1,15 @@
+default-group: local
+groups:
+  local:
+    generators:
+      - name: fernapi/fern-python-sdk
+        version: 0.9.5
+        output:
+          location: pypi
+          package-name: arrodes-py
+          token: ${PYPI_TOKEN}
+        github:
+          repository: sampan26/arrodes
+        config:
+          client_class_name: Arrodes
+ 
