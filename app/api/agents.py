@@ -69,7 +69,7 @@ async def read_agents(token=Depends(JWTBearer())):
 @router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
 async def read_agent(agentId: str, token=Depends(JWTBearer())):
     """Agent detail endpoint"""
-    agent = prisma.agent.find_unique(where={"id": agentId}, include={"prompt": True})
+    agent = prisma.agent.find_unique(where={"id": agentId}, include={"user": True})
 
     if agent:
         return {"success": True, "data": agent}
@@ -156,18 +156,25 @@ async def run_agent(
                         yield f"data: {data}\n\n"
                         break
                     yield f"data: {data}\n\n"
-
-            def conversation_run_thread(input: dict) -> None:
-                agent_base = AgentBase(
+            
+            def get_agent_base() -> Any:
+                return AgentBase(
                     agent=agent,
                     has_streaming=has_streaming,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
                     on_chain_end=on_chain_end,
                 )
+
+            def conversation_run_thread(input: dict) -> None:
+                agent_base = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
                 agent_executor = agent_strategy.get_agent()
                 result = agent_executor(input)
+                output = result.get("output") or result.get("result")
+                background_tasks.add_task(
+                    agent_base.create_agent_memory, agentId, "AI", output
+                )
 
                 if config("ARRODES_TRACING"):
                     trace = agent_base._format_trace(trace=result)
