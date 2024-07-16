@@ -28,13 +28,13 @@ export default function HomeClientPage() {
           borderWidth="1px"
           borderRadius="md"
         >
-          Superagent is in public beta, expect rapid updates. All feedback
+          Arrodes is in public beta, expect rapid updates. All feedback
           appreciated.
         </Alert>
         <Stack>
           <HStack>
             <Heading as="h1" fontSize="2xl">
-              Welcome to Superagent
+              Welcome to Arrodes
             </Heading>
             <Tag size="sm">Beta</Tag>
           </HStack>
