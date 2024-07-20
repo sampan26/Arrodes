@@ -88,11 +88,11 @@ function DocumentRow({ id, name, type, url, onDelete }) {
   );
 }
 
-// export default function DocumentsClientPage({ data, session }) {
-export default function DocumentsClientPage() {
+export default function DocumentsClientPage({ data, session }) {
+// export default function DocumentsClientPage() {
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
-  // const api = new API(session);
+  const api = new API(session);
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -116,7 +116,7 @@ export default function DocumentsClientPage() {
       },
     };
 
-    // await api.createDocument(payload);
+    await api.createDocument(payload);
 
     analytics.track("Created Document", { ...payload });
     router.refresh();
@@ -125,7 +125,7 @@ export default function DocumentsClientPage() {
   };
 
   const handleDelete = async (id) => {
-    // await api.deleteDocument({ id });
+    await api.deleteDocument({ id });
 
     analytics.track("Deleted Document", { id });
     router.refresh();
@@ -165,7 +165,7 @@ export default function DocumentsClientPage() {
               <Th>&nbsp;</Th>
             </Tr>
           </Thead>
-          {/* <Tbody>
+          {<Tbody>
             {data?.map(({ id, name, type, url }) => (
               <DocumentRow
                 key={id}
@@ -176,7 +176,7 @@ export default function DocumentsClientPage() {
                 onDelete={(id) => handleDelete(id)}
               />
             ))}
-          </Tbody> */}
+          </Tbody>}
         </Table>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose}>

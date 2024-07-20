@@ -9,11 +9,11 @@ export const metadata = {
 };
 
 export default async function ApiTokens() {
+  console.log("THERE");
   const session = await getServerSession(options);
-//   const api = new Api(session);
-//   const documents = await api.getDocuments();
+  console.log(session);
+  const api = new Api(session);
+  const documents = await api.getDocuments();
 
-//   return <DocumentsClientPage data={documents} session={session} />;
-    return <DocumentsClientPage />;
-
+  return <DocumentsClientPage data={documents} session={session} />;
 }
