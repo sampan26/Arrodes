@@ -1,15 +1,14 @@
 import json
 
-from fastapi import APIRouter, HTTPException, status  
+from fastapi import APIRouter, HTTPException, status
 
 from app.lib.auth.prisma import (
     encryptPassword,
     signJWT,
-    validatePassword
+    validatePassword,
 )
-from app.lib.prisma import prisma
 from app.lib.models.auth import SignIn, SignInOut, SignUp
-
+from app.lib.prisma import prisma
 
 router = APIRouter()
 
@@ -19,7 +18,7 @@ async def sign_in(signIn: SignIn):
         where={
             "email": signIn.email,
         },
-        include={"profile": True}
+        include={"profile": True},
     )
     if user:
         validated = validatePassword(signIn.password, user.password)
@@ -28,34 +27,36 @@ async def sign_in(signIn: SignIn):
         if validated:
             token = signJWT(user.id)
             return {"success": True, "data": SignInOut(token=token, user=user)}
-    
+
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
         )
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
         )
 
 @router.post("/auth/sign-up")
 async def sign_up(body: SignUp):
     encryptPassword(body.password)
-    body = prisma.user.create(
+    user =  prisma.user.create(
         {
             "email": body.email,
             "password": encryptPassword(body.password),
             "name": body.name,
         }
     )
-    prisma.profile.create(
-        {"userId": body.id, "metadata": json.dump(body.metadata)}
-    )
+    print("===============================================================================")
+    print(user)
+    print("===============================================================================")
+    prisma.profile.create({"userId": user.id, "metadata": json.dumps(body.metadata)})
 
-    if body:
-        return {"success": True, "data": body}
+    if user:
+        return {"success": True, "data": user}
+
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Invalid credentials"
+        detail="Invalid credentials",
     )
