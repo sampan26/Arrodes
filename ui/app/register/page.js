@@ -35,16 +35,16 @@ export default function Register() {
       name: data.name,
     });
 
-    const subscription = await stripe.subscriptions.create({
-      customer: stripeCustomerId,
-      items: [{ price: process.env.NEXT_PUBLIC_STRIPE_FREE_PLAN_ID }],
-    });
+    // const subscription = await stripe.subscriptions.create({
+    //   customer: stripeCustomerId,
+    //   items: [{ price: process.env.NEXT_PUBLIC_STRIPE_FREE_PLAN_ID }],
+    // });
 
     await ky
-      .post(`${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/sign-up`, {
+      .post("http://127.0.0.1:8000/api/v1/auth/sign-up", {
         json: {
           ...data,
-          metadata: { stripe_customer_id: stripeCustomerId, subscription },
+          metadata: { stripe_customer_id: stripeCustomerId },
         },
       })
       .json();
