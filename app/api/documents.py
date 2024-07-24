@@ -9,21 +9,24 @@ from app.lib.prisma import prisma
 
 router = APIRouter()
 
-@router.post("/documents", name="Create Doc", description="Create new doc")
+
+@router.post("/documents", name="Create document", description="Create a new document")
 async def create_document(body: Document, token=Depends(JWTBearer())):
+    """Create document endpoint"""
+
     try:
         decoded = decodeJWT(token)
         document = prisma.document.create(
             {
                 "type": body.type,
                 "url": body.url,
-                "userId": decoded["userID"],
+                "userId": decoded["userId"],
                 "name": body.name,
                 "splitter": json.dumps(body.splitter),
-                "authorization": json.dumps(body.authorization)
+                "authorization": json.dumps(body.authorization),
             }
         )
-        
+
         if body.type in valid_ingestion_types:
             upsert_document(
                 url=body.url,
@@ -35,12 +38,14 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             )
 
         return {"success": True, "data": document}
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e
+            detail=e,
         )
-    
+
+
 @router.get("/documents", name="List documents", description="List all documents")
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
@@ -58,8 +63,11 @@ async def read_documents(token=Depends(JWTBearer())):
     )
 
 
-    
-@router.get("/documents/{documentId}", name="Get Document", description="Get a doc")
+@router.get(
+    "/documents/{documentId}",
+    name="Get document",
+    description="Get a specific document",
+)
 async def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
     document = prisma.document.find_unique(
@@ -74,7 +82,12 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
         detail=f"Agent with id: {documentId} not found",
     )
 
-@router.delete("/documents/{documentId}",name="Delete document",description="Delete a specific document",)
+
+@router.delete(
+    "/documents/{documentId}",
+    name="Delete document",
+    description="Delete a specific document",
+)
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
