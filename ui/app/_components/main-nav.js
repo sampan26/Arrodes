@@ -13,6 +13,8 @@ import { TbArrowRight } from "react-icons/tb";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
 
 export default function MainNav() {
+
+
   const fontColor = useColorModeValue("white", "white");
 
   return (
