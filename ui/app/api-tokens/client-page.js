@@ -72,12 +72,11 @@ function TokenRow({ id, description, token, onDelete }) {
   );
 }
 
-// export default function ApiTokensClientPage({ data, session }) {
-export default function ApiTokensClientPage() {
+export default function ApiTokensClientPage({ data, session }) {
 
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
-//   const api = new API(session);
+  const api = new API(session);
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -86,7 +85,7 @@ export default function ApiTokensClientPage() {
   } = useForm();
 
   const onSubmit = async (values) => {
-    // await api.createApiToken(values);
+    await api.createApiToken(values);
 
     analytics.track("Created API Token");
     router.refresh();
@@ -95,7 +94,7 @@ export default function ApiTokensClientPage() {
   };
 
   const handleDelete = async (id) => {
-    // await api.deleteApiToken({ id });
+    await api.deleteApiToken({ id });
 
     analytics.track("Deleted API Token");
     router.refresh();
@@ -128,7 +127,7 @@ export default function ApiTokensClientPage() {
             </Tr>
           </Thead>
           <Tbody>
-            {/* {data?.map(({ description, id, token }) => (
+            {data?.map(({ description, id, token }) => (
               <TokenRow
                 key={id}
                 id={id}
@@ -136,7 +135,7 @@ export default function ApiTokensClientPage() {
                 token={token}
                 onDelete={(id) => handleDelete(id)}
               />
-            ))} */}
+            ))}
           </Tbody>
         </Table>
       </Stack>
