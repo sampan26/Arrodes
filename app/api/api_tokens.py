@@ -8,7 +8,9 @@ from app.lib.prisma import prisma
 router = APIRouter()
 
 
-@router.post("/api-tokens", name="Create API token", description="Create a new API token")
+@router.post(
+    "/api-tokens", name="Create API token", description="Create a new API token"
+)
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
     decoded = decodeJWT(token)
@@ -50,7 +52,11 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     )
 
 
-@router.get("/api-tokens/{tokenId}",name="Get API token",description="Get a specific API token",)
+@router.get(
+    "/api-tokens/{tokenId}",
+    name="Get API token",
+    description="Get a specific API token",
+)
 async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
     api_token = prisma.apitoken.find_unique(
@@ -66,9 +72,13 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     )
 
 
-@router.delete("/api-tokens/{tokenId}",name="Delete API token",description="Delete a specific API token")
+@router.delete(
+    "/api-tokens/{tokenId}",
+    name="Delete API token",
+    description="Delete a specific API token",
+)
 async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
-    """Deleta api token endpoint"""
+    """Delete api token endpoint"""
     try:
         prisma.apitoken.delete(where={"id": tokenId})
 
