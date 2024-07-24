@@ -10,10 +10,8 @@ export const metadata = {
   
 export default async function ApiTokens() {
     const session = await getServerSession(options);
-    // const api = new Api(session);
-    // const apiTokens = await api.getApiTokens();
+    const api = new Api(session);
+    const apiTokens = await api.getApiTokens();
   
-    // return <ApiTokensClientPage data={apiTokens} session={session} />;
-    return <ApiTokensClientPage />;
-
+    return <ApiTokensClientPage data={apiTokens} session={session} />;
   }
