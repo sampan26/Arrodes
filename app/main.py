@@ -31,7 +31,22 @@ async def add_process_time_header(request: Request, call_next):
 
 @app.on_event("startup")
 async def startup():
+    # print("=====================================================================================================================")
+    # print("=====================================================================================================================")
+    # print("=====================================================================================================================")
+    # import os
+    # print("Database URL:", os.getenv("DATABASE_URL"))
     prisma.connect()
+    # try:
+    #     # Attempt to query the database
+    #     result = await prisma.user.count()
+    #     print(f"Database connection successful. User count: {result}")
+    # except Exception as e:
+    #     print(f"Database connection failed: {str(e)}")
+    #     # Optionally, you might want to exit the application here
+    #     # import sys
+    #     # sys.exit(1)
+
 
 @app.on_event("shutdown")
 async def shutdown():
