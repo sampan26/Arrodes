@@ -7,7 +7,7 @@ pinecone.init(
     environment=config("PINECONE_ENVIRONMENT"), 
 )
 
-pinecone.Index("superagent")
+pinecone.Index("arrodes")
 
 
 class PineconeVectorstore:
