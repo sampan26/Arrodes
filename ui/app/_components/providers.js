@@ -10,37 +10,39 @@ import theme from "@/lib/theme";
 import { analytics } from "@/lib/analytics";
 
 function AnalyticsProvider({ children }) {
-    const pathname = usePathname();
-    const session = useSession();
-    const previousPathname = usePrevious(pathname);
-    const previousSession = usePrevious(session);
+  const pathname = usePathname();
+  const session = useSession();
+  const previousPathname = usePrevious(pathname);
+  const previousSession = usePrevious(session);
 
-    useEffect(() => {
-        if (pathname != previousPathname) {
-            analytics.page({ name: pathname });
-        }
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      if (pathname !== previousPathname) {
+        analytics.page({ name: pathname });
+      }
 
-        if (
-            session.status == "authenticated" &&
-            previousSession?.status !== "authenticated"
-        ) {
-            analytics.identify(session.data.user.user.id, {
-                ...session.data.user.user,
-            });
-        }
-    }, [previousSession, session, pathname, previousPathname]);
+      if (
+        session.status === "authenticated" &&
+        previousSession?.status !== "authenticated"
+      ) {
+        analytics.identify(session.data.user.user.id, {
+          ...session.data.user.user,
+        });
+      }
+    }
+  }, [previousSession, session, pathname, previousPathname]);
 
-    return children
+  return children;
 }
 
-export function Providers ({ children }) {
-    return (
-        <SessionProvider>
-            <AnalyticsProvider>
-                <CacheProvider>
-                    <ChakraProvider theme={theme}>{children}</ChakraProvider>
-                </CacheProvider>
-            </AnalyticsProvider>
-        </SessionProvider>
-    )
+export function Providers({ children }) {
+  return (
+    <SessionProvider>
+      <AnalyticsProvider>
+        <CacheProvider>
+          <ChakraProvider theme={theme}>{children}</ChakraProvider>
+        </CacheProvider>
+      </AnalyticsProvider>
+    </SessionProvider>
+  );
 }

@@ -67,6 +67,23 @@ export default function AgentTool({ onSubmit, session }) {
                     <Spinner size="sm" />
                   </Center>
                 )}
+                {!isLoading && tools.length === 0 && (
+                  <Center flex={1} borderWidth="0.5px" borderRadius="md">
+                    <Stack alignItems="center" spacing={4}>
+                      <Text color="gray.500">
+                        You haven&apos;t configured any tools.{" "}
+                      </Text>
+                      <NextLink passHref href="/tools">
+                        <Button
+                          leftIcon={<Icon as={TbPlus} />}
+                          variant="outline"
+                        >
+                          Create tool
+                        </Button>
+                      </NextLink>
+                    </Stack>
+                  </Center>
+                )}
                 {!isLoading &&
                   tools.map(({ id, name, type }) => (
                     <HStack
@@ -115,23 +132,7 @@ export default function AgentTool({ onSubmit, session }) {
                       <Tag size="sm">Coming soon</Tag>
                     </HStack>
                   ))}
-                {!isLoading && tools.length === 0 && (
-                  <Center flex={1} borderWidth="0.5px" borderRadius="md">
-                    <Stack alignItems="center" spacing={4}>
-                      <Text color="gray.500">
-                        You haven&apos;t configured any tools.{" "}
-                      </Text>
-                      <NextLink passHref href="/tools">
-                        <Button
-                          leftIcon={<Icon as={TbPlus} />}
-                          variant="outline"
-                        >
-                          Create tool
-                        </Button>
-                      </NextLink>
-                    </Stack>
-                  </Center>
-                )}
+                
               </Stack>
               <Box
                 position="absolute"

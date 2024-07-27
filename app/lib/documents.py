@@ -15,7 +15,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
-from llama_index.readers.schema.base import Document
+# from llama_index.readers.schema.base import Document
 
 valid_ingestion_types = [
     "TXT",
@@ -23,7 +23,6 @@ valid_ingestion_types = [
     "URL", 
     "YOUTUBE", 
     "MARKDOWN", 
-    "FILESTORE"
 ]
 
 
@@ -123,26 +122,26 @@ def upsert_document(
             docs, embeddings, index_name="arrodes", namespace=document_id
         )
 
-    if type == "FILESTORE":
-        from google.cloud import firestore
-        from google.oauth2 import service_account
+    # if type == "FILESTORE":
+    #     from google.cloud import firestore
+    #     from google.oauth2 import service_account
 
-        credentials = service_account.Credentials.from_service_account_info(
-            authorization
-        )
-        db = firestore.Client(
-            credentials=credentials, project=authorization['project_id']
-        )
-        documents = []
-        col_ref = db.collection(metadata['collection'])
+    #     credentials = service_account.Credentials.from_service_account_info(
+    #         authorization
+    #     )
+    #     db = firestore.Client(
+    #         credentials=credentials, project=authorization['project_id']
+    #     )
+    #     documents = []
+    #     col_ref = db.collection(metadata['collection'])
 
-        for doc in col_ref.stream():
-            doc_str = ", ".join([f"{k}: {v}" for k, v in doc.to_dict().items()])
-            documents.append(Document(text=doc_str))
+    #     for doc in col_ref.stream():
+    #         doc_str = ", ".join([f"{k}: {v}" for k, v in doc.to_dict().items()])
+    #         documents.append(Document(text=doc_str))
         
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="arrodes", namespace=document_id
-        )
+    #     VectorStoreBase().get_database().from_documents(
+    #         docs, embeddings, index_name="arrodes", namespace=document_id
+    #     )
 
     if type == "PSYCHIC":
         loader = PsychicLoader(
