@@ -13,7 +13,7 @@ class AgentFactory:
         elif agent_base.type == "REACT":
             if agent_base.tools or agent_base.documents:
                 return ReactAgent(agent_base)
-            
+
             return DefaultAgent(agent_base)
 
         else:

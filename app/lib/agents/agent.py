@@ -22,9 +22,9 @@ class DefaultAgent(AgentStrategy):
         memory = self.agent_base._get_memory()
         prompt = self.agent_base._get_prompt()
         agent = LLMChain(
-            llm=llm, 
-            memory=memory, 
-            verbose=True, 
+            llm=llm,
+            memory=memory,
+            verbose=True,
             prompt=prompt,
             output_key="output",
         )
@@ -45,10 +45,10 @@ class OpenAIAgent(AgentStrategy):
             tools=tools,
             llm=llm,
             agent=AgentType.OPENAI_FUNCTIONS,
-            system_prompt=prompt,
+            system_message=prompt,
             agent_kwargs={
                 "system_message": prompt,
-                "extra_prompt_message": [
+                "extra_prompt_messages": [
                     MessagesPlaceholder(variable_name="chat_history")
                 ]
                 if self.agent_base.has_memory
@@ -72,7 +72,8 @@ class ReactAgent(AgentStrategy):
         tools = self.agent_base._get_tools()
         output_parser = CustomOutputParser()
         tool_names = [tool.name for tool in tools]
-        llm_chain = LLMChain(llm=llm, prompt=self.agent_base._get_prompt())
+        prompt = self.agent_base._get_prompt(tools=tools)
+        llm_chain = LLMChain(llm=llm, prompt=prompt)
         agent_config = LLMSingleActionAgent(
             llm_chain=llm_chain,
             output_parser=output_parser,
@@ -80,12 +81,11 @@ class ReactAgent(AgentStrategy):
             allowed_tools=tool_names,
         )
         agent = AgentExecutor.from_agent_and_tools(
-            agent=agent_config, 
-            tools=tools, 
-            verbose=True, 
+            agent=agent_config,
+            tools=tools,
+            verbose=True,
             memory=memory,
-            return_intermediate_steps=True
+            return_intermediate_steps=True,
         )
 
         return agent
- 

@@ -21,7 +21,7 @@ from langchain.schema import SystemMessage
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
-from app.lib.models.tool import ReplicateToolInput, SearchToolInput, WolframToolInput
+from app.lib.models.tool import SearchToolInput, WolframToolInput, ReplicateToolInput
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
@@ -104,7 +104,7 @@ class AgentBase:
 
             if self.tool.type == "WOLFRAM_ALPHA":
                 tool = get_wolfram_alpha_tool()
-            
+
             if self.tool.type == "REPLICATE":
                 tool = get_replicate_tool()
 
@@ -157,7 +157,7 @@ class AgentBase:
                     model_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
                     temperature=0,
-                    )
+                )
             )
 
         if self.llm["provider"] == "openai":
@@ -275,8 +275,8 @@ class AgentBase:
         return agent_documents
 
     def _get_tool_and_input_by_type(
-            self, type: str, metadata: dict = None
-            ) -> Tuple[Any, Any]:
+        self, type: str, metadata: dict = None
+    ) -> Tuple[Any, Any]:
         if type == "SEARCH":
             return get_search_tool(), SearchToolInput
         if type == "WOLFRAM_ALPHA":
@@ -289,7 +289,10 @@ class AgentBase:
         embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
-            description = f"useful when you want to answer questions about {agent_document.document.name}"
+            description = (
+                f"useful for finding information about {agent_document.document.name}"
+            )
+
             args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
             retriever = (
@@ -314,7 +317,7 @@ class AgentBase:
         for agent_tool in self.tools:
             tool, args_schema = self._get_tool_and_input_by_type(
                 agent_tool.tool.type, metadata=agent_tool.tool.metadata
-                )
+            )
             tools.append(
                 Tool(
                     name=slugify(agent_tool.tool.name),
@@ -356,6 +359,13 @@ class AgentBase:
                 "steps": [trace],
             }
         )
+
+    def process_payload(self, payload):
+        if isinstance(payload, dict):
+            if self.type == "OPENAI":
+                payload = str(payload)
+
+        return payload
 
     def create_agent_memory(self, agentId: str, author: str, message: str):
         prisma.agentmemory.create(
