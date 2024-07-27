@@ -74,4 +74,3 @@ async def delete_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     prisma.agenttool.delete(where={"id": agentToolId})
 
     return {"success": True, "data": None}
- 

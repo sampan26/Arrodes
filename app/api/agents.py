@@ -69,7 +69,7 @@ async def read_agents(token=Depends(JWTBearer())):
 @router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
 async def read_agent(agentId: str, token=Depends(JWTBearer())):
     """Agent detail endpoint"""
-    agent = prisma.agent.find_unique(where={"id": agentId}, include={"user": True})
+    agent = prisma.agent.find_unique(where={"id": agentId}, include={"prompt": True})
 
     if agent:
         return {"success": True, "data": agent}
@@ -150,13 +150,10 @@ async def run_agent(
                     data = data_queue.get()
                     ai_message += data
                     if data == "[END]":
-                        background_tasks.add_task(
-                            agent_base.create_agent_memory, agentId, "AI", ai_message
-                        )
                         yield f"data: {data}\n\n"
                         break
                     yield f"data: {data}\n\n"
-            
+
             def get_agent_base() -> Any:
                 return AgentBase(
                     agent=agent,
