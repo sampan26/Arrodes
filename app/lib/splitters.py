@@ -108,4 +108,3 @@ class TextSplitters:
         )
         docs = text_splitter.split_text(self.documents)
         return docs
- 
