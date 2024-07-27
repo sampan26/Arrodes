@@ -48,9 +48,7 @@ async def sign_up(body: SignUp):
             "name": body.name,
         }
     )
-    print("===============================================================================")
     print(user)
-    print("===============================================================================")
     prisma.profile.create({"userId": user.id, "metadata": json.dumps(body.metadata)})
 
     if user:
