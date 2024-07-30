@@ -160,3 +160,4 @@ def upsert_document(
         VectorStoreBase().get_database().from_documents(
             docs, embeddings, index_name="arrodes", namespace=document_id
         )
+
