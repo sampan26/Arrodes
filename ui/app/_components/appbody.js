@@ -48,13 +48,14 @@ function MenuLink({ label, icon, path, ...properties }) {
 export default function AppBody({ children, session }) {
   return (
     <AppShell
+      backgroundColor="#131416"
       variant="fixed"
       minH="100vh"
       maxH="100vh"
       overflow="hidden"
       sidebar={
         session &&
-        <Sidebar width="25%">
+        <Sidebar backgroundColor="#131416" width="20%">
           <SidebarToggleButton />
           <SidebarSection direction="row">
           <HStack width="full" justifyContent="space-between" paddingX="2">

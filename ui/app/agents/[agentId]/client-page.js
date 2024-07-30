@@ -260,7 +260,7 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1} minH="100%"
+    <Stack spacing={0} flex={1} minH="100%ww"
     //overflow="auto"
     >
       <AgentNavbar 
