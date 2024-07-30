@@ -18,6 +18,7 @@ async def create_tool(body: Tool, token=Depends(JWTBearer())):
         "type": body.type,
         "metadata": json.dumps(body.metadata),
         "userId": decoded["userId"],
+        "description": body.description,
         },
         include={"user":True}
     )
@@ -28,7 +29,9 @@ async def create_tool(body: Tool, token=Depends(JWTBearer())):
 async def read_tools(token=Depends(JWTBearer())):
     decoded = decodeJWT(token)
     tools = prisma.tool.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": decoded["userId"]},
+        include={"user": True},
+        order={"createdAt": "desc"},
     )
 
     return {"success": True, "data": tools}
@@ -45,3 +48,13 @@ async def delete_tool(toolId: str, token=Depends(JWTBearer())):
 
     return {"success": True, "data": None}
 
+@router.patch("/tools/{toolId}", name="Patch tool", description="Patch a specific tool")
+async def patch_tool(toolId: str, body: str, token=Depends(JWTBearer())):
+    body["metadata"] = json.dumps(body["metadata"])
+    tool = prisma.tool.update(
+        data=body,
+        where={"id": toolId}
+    )
+    
+    return {"success": True, "data": tool}
+ 

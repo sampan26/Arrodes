@@ -56,7 +56,9 @@ async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     decoded = decodeJWT(token)
     documents = prisma.document.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": decoded["userId"]},
+        include={"user": True},
+        order={"createdAt": "desc"},
     )
 
     if documents:
