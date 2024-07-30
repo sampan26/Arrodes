@@ -18,16 +18,13 @@ import {
   ModalCloseButton,
   Stack,
   Tag,
-  Table,
   Textarea,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
   Text,
   useDisclosure,
   FormHelperText,
   FormErrorMessage,
+  SimpleGrid,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbInfoCircle } from "react-icons/tb";
@@ -35,13 +32,16 @@ import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { getPromptVariables, DEFAULT_PROMPT } from "@/lib/prompts";
-import PromptRow from "./_components/row";
+import PromptCard from "./_components/card";
+import SearchBar from "../_components/search-bar";
 
 export default function PromptsClientPage({ data, session }) {
+  const [filteredData, setData] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [selectedPrompt, setSelectedPrompt] = useState();
   const router = useRouter();
   const api = new API(session);
+  const toast = useToast();
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -76,11 +76,17 @@ export default function PromptsClientPage({ data, session }) {
       if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
         analytics.track("Created Prompt", { ...payload });
       }
-
+      toast({
+        description: "Prompt created",
+        position: "top",
+        colorScheme: "gray",
+      });
+  
     }
 
     router.refresh();
     reset();
+    setData();
     setSelectedPrompt();
     onClose();
   };
@@ -91,7 +97,13 @@ export default function PromptsClientPage({ data, session }) {
     if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
       analytics.track("Deleted Prompt", { id });
     }
+    toast({
+      description: "Prompt deleted",
+      position: "top",
+      colorScheme: "gray",
+    });
 
+    setData();
     router.refresh();
   };
 
@@ -104,16 +116,37 @@ export default function PromptsClientPage({ data, session }) {
     onOpen();
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
+
   return (
-    <Stack flex={1} paddingX={12} paddingY={12} spacing={6}>
+    <Stack
+      flex={1}
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between">
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Prompts
           </Heading>
-          <Text color="gray.400">
-            A prompt is piece of text that gives context to the LLM. It can
-            contain instructions on how the Agent should act.
+          <Text color="gray.400" display={["none", "block"]}>
+            Manage your prompts
           </Text>
         </Stack>
         <Button
@@ -124,28 +157,42 @@ export default function PromptsClientPage({ data, session }) {
           New prompt
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Inputs</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, name, input_variables }) => (
-              <PromptRow
-                key={id}
-                id={id}
-                name={name}
-                inputVariables={input_variables}
-                onDelete={(id) => handleDelete(id)}
-                onEdit={(id) => handleEdit(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+      <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
+      {filteredData
+            ? filteredData?.map(
+                ({ id, name, createdAt, template, input_variables }) => (
+                  <PromptCard
+                    key={id}
+                    id={id}
+                    createdAt={createdAt}
+                    name={name}
+                    template={template}
+                    inputVariables={input_variables}
+                    onDelete={(id) => handleDelete(id)}
+                    onEdit={(id) => handleEdit(id)}
+                  />
+                )
+              )
+            : data?.map(
+                ({ id, name, createdAt, template, input_variables }) => (
+                  <PromptCard
+                    key={id}
+                    id={id}
+                    createdAt={createdAt}
+                    name={name}
+                    template={template}
+                    inputVariables={input_variables}
+                    onDelete={(id) => handleDelete(id)}
+                    onEdit={(id) => handleEdit(id)}
+                  />
+                )
+              )}
+        </SimpleGrid>
       </Stack>
       <Modal
         isOpen={isOpen}

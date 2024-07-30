@@ -96,7 +96,7 @@ export default function AgentTool({ onSubmit, session }) {
                       paddingX={4}
                     >
                       <HStack spacing={4}>
-                        <Avatar src={TOOL_ICONS[type]} size="xs" />
+                        <Avatar src={TOOL_ICONS[type]} size="xs" name={name}/>
                         <Text fontWeight="bold">{name}</Text>
                       </HStack>
                       <Switch

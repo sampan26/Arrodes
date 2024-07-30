@@ -56,7 +56,7 @@ export default function Register() {
         analytics.track("Signed Up", {
           email: data.email,
           name: data.name,
-          stripe_customer_id: stripeCustomerId,
+          stripe_customer_id: payload.metadata?.stripeCustomerId,
         });
       }
   
@@ -77,7 +77,7 @@ export default function Register() {
       alignSelf="center"
       justifySelf="center"
     >
-      <Stack spacing={8}>
+      <Stack spacing={8} minHeight="100vh" justifyContent="center">
         <HStack spacing={4} justifyContent="center" alignItems="center">
           <Text as="strong" color={fontColor} fontSize="2xl">
             Superagent

@@ -261,8 +261,12 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1}>
-      <AgentNavbar agent={agent} hasApiTokenWarning={!apiTokens} />
+    <Stack spacing={0} flex={1} overflow="auto">
+      <AgentNavbar 
+        agent={agent} 
+        hasApiTokenWarning={!apiTokens} 
+        apiToken={apiTokens?.[0]}
+      />
       <HStack
         padding={6}
         justifyContent="space-between"
@@ -402,7 +406,7 @@ export default function AgentDetailClientPage({
               paddingY={2}
               paddingX={4}
             >
-              <Text fontSize="sm">{agent.llm.model}</Text>
+              <Text fontSize="sm">{agent?.llm?.model}</Text>
             </HStack>
           </HStack>
         </Panel>
