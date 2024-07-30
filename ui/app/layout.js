@@ -2,9 +2,9 @@ import { getServerSession } from "next-auth/next";
 import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import { Providers } from "./_components/providers";
-import Container from "./_components/container";
-import MenuLink from "./_components/navigation";
+
 import { options } from "@/lib/next-auth";
+import AppBody from "./_components/appbody";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,11 +23,9 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <Container>
-            {session && <MenuLink />}
-
+          <AppBody session={session}>
             {children}
-          </Container>
+          </AppBody>
         </Providers>
         <Analytics />
       </body>
