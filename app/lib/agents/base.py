@@ -5,7 +5,7 @@ from typing import Any, Tuple
 from slugify import slugify
 from decouple import config
 from langchain import HuggingFaceHub
-from langchain.agents import Tool
+from langchain.agents import Tool, AgentType #create_csv_agent
 from langchain.chains import RetrievalQA
 from langchain.chat_models import (
     AzureChatOpenAI,
@@ -21,7 +21,13 @@ from langchain.schema import SystemMessage
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
-from app.lib.models.tool import SearchToolInput, WolframToolInput, ReplicateToolInput
+from app.lib.models.tool import (
+    SearchToolInput, 
+    WolframToolInput, 
+    ReplicateToolInput,
+    ZapierToolInput,
+    OpenApiToolInput
+)
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
@@ -33,6 +39,9 @@ from app.lib.tools import (
     get_search_tool,
     get_wolfram_alpha_tool,
     get_replicate_tool,
+    get_openapi_tool,
+    get_zapier_nla_tool,
+    DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -41,12 +50,14 @@ class AgentBase:
     def __init__(
         self,
         agent: dict,
+        api_key: str = None,
         has_streaming: bool = False,
         on_llm_new_token=None,
         on_llm_end=None,
         on_chain_end=None,
     ):
         self.id = agent.id
+        self.api_key = api_key,
         self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
@@ -97,22 +108,6 @@ class AgentBase:
                 else config("HUGGINGFACEHUB_API_TOKEN")
             )
 
-    def _get_tool(self, *args) -> Any:
-        try:
-            if self.tool.type == "SEARCH":
-                tool = get_search_tool()
-
-            if self.tool.type == "WOLFRAM_ALPHA":
-                tool = get_wolfram_alpha_tool()
-
-            if self.tool.type == "REPLICATE":
-                tool = get_replicate_tool()
-
-            return tool
-
-        except Exception:
-            return None
-
     def _get_prompt(self, tools: list = None) -> Any:
         if not self.tools and not self.documents:
             return (
@@ -136,7 +131,7 @@ class AgentBase:
 
         return DEFAULT_CHAT_PROMPT
 
-    def _get_llm(self) -> Any:
+    def _get_llm(self, has_streaming: bool=True) -> Any:
         if self.llm["provider"] == "openai-chat":
             return (
                 ChatOpenAI(
@@ -146,13 +141,14 @@ class AgentBase:
                     streaming=self.has_streaming,
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type = self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else ChatOpenAI(
                     model_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
@@ -168,17 +164,19 @@ class AgentBase:
         if self.llm["provider"] == "anthropic":
             return (
                 ChatAnthropic(
+                    model=self.llm["model"] or "claude-v1",
                     streaming=self.has_streaming,
                     anthropic_api_key=self._get_api_key(),
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type = self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else ChatAnthropic(anthropic_api_key=self._get_api_key())
             )
 
@@ -189,13 +187,14 @@ class AgentBase:
                     model=self.llm["model"],
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type=self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else Cohere(cohere_api_key=self._get_api_key(), model=self.llm["model"])
             )
 
@@ -210,13 +209,14 @@ class AgentBase:
                     streaming=self.has_streaming,
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type=self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else AzureChatOpenAI(
                     deployment_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
@@ -283,6 +283,15 @@ class AgentBase:
             return get_wolfram_alpha_tool(), WolframToolInput
         if type == "REPLICATE":
             return get_replicate_tool(metadata=metadata), ReplicateToolInput
+        if type == "ZAPIER_NLA":
+            return (
+                get_zapier_nla_tool(
+                    metadata=metadata, llm=self._get_llm(has_streaming=False)
+                ),
+                ZapierToolInput
+            )
+        if type == "OPENAPI":
+            return (get_openapi_tool(metadata=metadata), OpenApiToolInput)
 
     def _get_tools(self) -> list:
         tools = []
@@ -295,24 +304,56 @@ class AgentBase:
 
             args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
-            retriever = (
+            docsearch = (
                 VectorStoreBase()
                 .get_database()
                 .from_existing_index(embeddings, agent_document.document.id)
-            ).as_retriever()
-            tools.append(
-                Tool(
-                    name=slugify(agent_document.document.name)
-                    if self.type == "OPENAI"
-                    else agent_document.document.name,
-                    description=description,
-                    args_schema=args_schema,
-                    func=RetrievalQA.from_chain_type(
-                        llm=self._get_llm(),
-                        retriever=retriever,
-                    ),
-                )
             )
+            summary_tool = DocSummarizerTool(
+                docsearch=docsearch, llm=self._get_llm(has_streaming=False)
+            )
+            if agent_document.document.type == "CSV":
+                print("No suported at this time")
+                # csv_agent = create_csv_agent(
+                #     llm=self._get_llm(has_streaming=False),
+                #     path=agent_document.document.url,
+                #     verbose=True,
+                #     agent_type=AgentType.OPENAI_FUNCTIONS
+                #     if self.type == "OPENAI"
+                #     else AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                # )
+
+                # tools.append(
+                #         Tool(
+                #             name=slugify(agent_document.document.name),
+                #             description=description,
+                #             args_schema=args_schema,
+                #             func=csv_agent.run,
+                #         )
+                #     )
+            else:
+                tools.append(
+                    Tool(
+                        name=slugify(agent_document.document.name)
+                        if self.type == "OPENAI"
+                        else agent_document.document.name,
+                        description=description,
+                        args_schema=args_schema,
+                        func=RetrievalQA.from_chain_type(
+                            llm=self._get_llm(has_streaming=False),
+                            retriever=docsearch.as_retriever(),
+                        ),
+                    )
+                )
+
+
+                tools.append(
+                    Tool.from_function(
+                        func=summary_tool.run,
+                        name="document-summarizre",
+                        description="useful for smmarizing a whole document"
+                    )
+                )
 
         for agent_tool in self.tools:
             tool, args_schema = self._get_tool_and_input_by_type(
