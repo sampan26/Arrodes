@@ -15,12 +15,12 @@ export default function HomeClientPage() {
   return (
     <Container maxWidth="3xl" minHeight="100vh">
       <Stack
-        paddingX={12}
-        paddingY={12}
+        paddingX={[4, 12]}
+        paddingY={[6, 12]}
         spacing={12}
         flex={1}
         height="100vh"
-        justifyContent="center"
+        justifyContent={["flex-start", "center"]}
       >
         <Alert
           variant="outline"
@@ -34,28 +34,28 @@ export default function HomeClientPage() {
         <Stack>
           <HStack>
             <Heading as="h1" fontSize="2xl">
-              Welcome to Arrodes
+              Arrodes
             </Heading>
             <Tag size="sm">Beta</Tag>
           </HStack>
           <Text color="gray.400">
-            Superagent is a platform that enables you to create, manage and run
+            Arrodes is a platform that enables you to create, manage and run
             AI Agents in seconds. We are currently in open beta so bare with us.
-            Make sure the read the documentation on how to integrate Superagent
+            Make sure the read the documentation on how to integrate Arrodes
             with your app.
           </Text>
         </Stack>
         <NextLink passHref href="https://docs.superagent.sh">
           <Stack
             minHeight="200px"
-            // bgGradient="linear(to-l, gray.600, gray.800)"
+            bgGradient="linear(to-l, gray.600, gray.800)"
             justifyContent="flex-end"
             padding={8}
             borderRadius="lg"
             transition="0.2s all"
             _hover={{ transform: "scale(1.03)" }}
           >
-            <Stack maxWidth="60%">
+            <Stack maxWidth={["full", "60%"]}>
               <Heading as="h1" fontSize="2xl">
                 Documentation
               </Heading>
