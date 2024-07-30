@@ -23,6 +23,7 @@ enum AgentMemoryAuthorType {
 enum DocumentType {
   TXT
   PDF
+  CSV
   YOUTUBE
   OPENAPI
   URL
@@ -35,6 +36,7 @@ enum ToolType {
   SEARCH
   WOLFRAM_ALPHA
   REPLICATE
+  OPENAPI
 }
 
 model User {
@@ -91,6 +93,7 @@ model Agent {
   name          String
   type          AgentType       @default(REACT)
   llm           Json            @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
+  isPublic      Boolean         @default(false)
   hasMemory     Boolean         @default(false)
   AgentMemory   AgentMemory[]
   createdAt     DateTime?       @default(now())
